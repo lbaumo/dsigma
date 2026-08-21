@@ -91,13 +91,17 @@ def precompute_engine(
     cdef double[::1] z_l_max = table_s['z_l_max']
 
     cdef bint has_sigma_crit_eff = 'sigma_crit_eff' in table_l
+    cdef bint has_f_c_eff = 'f_c_eff' in table_l
     cdef int n_z_bins = 0
     cdef double[::1] sigma_crit_eff
+    cdef double[::1] f_c_eff
     cdef long[::1] z_bin
     if has_sigma_crit_eff:
         n_z_bins = len(table_l['sigma_crit_eff']) // len(table_l['z'])
         sigma_crit_eff = table_l['sigma_crit_eff']
         z_bin = table_s['z_bin']
+        if has_f_c_eff:
+            f_c_eff = table_l['f_c_eff']
 
     cdef bint has_m = 'm' in table_s
     cdef double[::1] m
@@ -254,6 +258,9 @@ def precompute_engine(
                     if has_sigma_crit_eff:
                         sigma_crit = sigma_crit_eff[
                             i_l * n_z_bins + z_bin[i_s]]
+                        if has_f_c_eff:
+                            f_c = f_c_eff[
+                            i_l * n_z_bins + z_bin[i_s]]
                     elif d_com_l[i_l] < d_com_s[i_s]:
                         sigma_crit = (sigma_crit_factor * (1 + z_l[i_l]) *
                             d_com_s[i_s] / d_com_l[i_l] /
@@ -302,6 +309,8 @@ def precompute_engine(
                     sum_w_ls_e_t_sigma_crit[offset_result + i_bin] += summand
                     sum_w_ls_z_s[offset_result + i_bin] += w_ls * z_s[i_s]
                     sum_w_ls_sigma_crit[offset_result + i_bin] += w_ls * sigma_crit
+                    if has_f_c_eff:
+                        sum_w_ls_fc[offset_result + i_bin] += w_ls * f_c
                     if has_m:
                         sum_w_ls_m[offset_result + i_bin] += w_ls * m[i_s]
                     if has_e_rms:

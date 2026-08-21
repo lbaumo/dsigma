@@ -136,8 +136,55 @@ def effective_critical_surface_density(
         z_l=z_l, d_l=d_l, z_s=z_s, d_s=d_s, comoving=comoving)
     sigma_crit_eff_inv = np.average(sigma_crit_eff_inv, weights=n_s, axis=-1)
 
+    
     with np.errstate(divide='ignore'):
         return 1.0 / sigma_crit_eff_inv
+
+def f_c_eff(
+        z_l, z_s, n_s, cosmology=None, comoving=True):
+    """Computes f_c, the effective inverse surface density for an ensemble.
+
+    Parameters
+    ----------
+    z_l : float or numpy.ndarray
+        Redshift of lens.
+    z_s : numpy.ndarray
+        Redshifts of sources.
+    n_s : numpy.ndarray
+        Fraction of source galaxies in each redshift bin. Does not need to be
+        normalized.
+    cosmology : astropy.cosmology or None, optional
+        Cosmology to assume for calculations. If ``None``, use
+        ``dsigma.default_cosmology``. Default is ``None``.
+    comoving : bool, optional
+        Flag for using comoving instead of physical units. Default is ``True``.
+
+    Returns
+    -------
+    sigma_crit_eff : astropy.units.quantity.Quantity
+        Effective critical surface density for the lens redshift given the
+        source redshift distribution. Has the same length as `z_l`.
+
+    """
+    cosmology = default_cosmology if cosmology is None else cosmology
+    d_l = cosmology.comoving_transverse_distance(z_l)
+    d_s = cosmology.comoving_transverse_distance(z_s)
+
+    if hasattr(z_l, '__len__'):
+        z_l = np.repeat(z_l, len(z_s)).reshape((len(z_l), len(z_s)))
+        d_l = np.repeat(d_l, len(z_s)).reshape(z_l.shape)
+        z_s = np.tile(z_s, len(z_l)).reshape(z_l.shape)
+        d_s = np.tile(d_s, len(z_l)).reshape(z_l.shape)
+        n_s = np.tile(n_s, len(z_l)).reshape(z_l.shape)
+
+    sigma_crit_eff_inv = 1.0 / critical_surface_density(
+        z_l=z_l, d_l=d_l, z_s=z_s, d_s=d_s, comoving=comoving)
+    sigma_crit_eff_inv = np.average(sigma_crit_eff_inv, weights=n_s, axis=-1)
+    sigma_crit_eff_inv_sq = np.average(sigma_crit_eff_inv**2, weights=n_s, axis=-1)
+
+    
+    with np.errstate(divide='ignore'):
+        return sigma_crit_eff_inv_sq / sigma_crit_eff_inv
 
 
 def _to_camb(cosmology, sigma_8, n_s, z, k_max=1e3):

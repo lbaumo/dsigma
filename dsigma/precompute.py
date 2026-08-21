@@ -12,7 +12,7 @@ from astropy_healpix import HEALPix
 
 from . import default_cosmology
 from .helpers import in_degrees, interpolate_over_redshift
-from .physics import critical_surface_density, effective_critical_surface_density
+from .physics import critical_surface_density, effective_critical_surface_density, f_c_eff
 from .precompute_engine import precompute_engine
 
 __all__ = ['mean_photo_z_offset', 'photo_z_dilution_factor', 'precompute']
@@ -330,21 +330,37 @@ def precompute(
             return 1.0 / effective_critical_surface_density(
                 z_l, table_n['z'], table_n['n'][:, z_bin],
                 cosmology=cosmology, comoving=comoving)
+        
+        def _f_c_eff(z_l, z_bin):
+            return f_c_eff(
+                z_l, table_n['z'], table_n['n'][:, z_bin],
+                 cosmology=cosmology, comoving=comoving)
 
         sigma_crit_eff_inv = np.zeros(len(table_l) * n_bins, dtype=np.float64)
+
+        f_c_eff = np.zeros(len(table_l) * n_bins, dtype=np.float64)
 
         for z_bin in range(n_bins):
             sigma_crit_eff_inv[z_bin::n_bins] = interpolate_over_redshift(
                 _inverse_effective_critical_surface_density,
+                table_engine_l['z'], z_bin).value
+            f_c_eff[z_bin::n_bins] = interpolate_over_redshift(
+                _f_c_eff,
                 table_engine_l['z'], z_bin).value
 
         with np.errstate(divide='ignore'):
             sigma_crit_eff = np.where(
                 sigma_crit_eff_inv > 0, 1.0 / sigma_crit_eff_inv,
                 np.finfo(np.float64).max)
+            
+            f_c_eff = np.where(
+                            sigma_crit_eff_inv > 0, f_c_eff,
+                            np.finfo(np.float64).max)
 
         table_engine_l['sigma_crit_eff'] = np.ascontiguousarray(
             sigma_crit_eff, dtype=np.float64)
+        table_engine_l['f_c_eff'] = np.ascontiguousarray(
+            f_c_eff, dtype=np.float64)
 
     # Create arrays that will hold the final results.
     table_engine_r = {}
