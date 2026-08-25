@@ -8,12 +8,22 @@ from astropy.units import UnitConversionError
 
 from .physics import lens_magnification_shear_bias, mpc_per_degree
 
-__all__ = ['boost_factor', 'excess_surface_density', 'lens_magnification_bias',
-           'matrix_shear_response_factor', 'mean_critical_surface_density',
-           'mean_lens_redshift', 'mean_source_redshift', 'number_of_pairs',
-           'photo_z_dilution_factor', 'raw_excess_surface_density',
-           'raw_tangential_shear', 'scalar_shear_response_factor',
-           'shear_responsivity_factor', 'tangential_shear']
+__all__ = [
+    "boost_factor",
+    "excess_surface_density",
+    "lens_magnification_bias",
+    "matrix_shear_response_factor",
+    "mean_critical_surface_density",
+    "mean_lens_redshift",
+    "mean_source_redshift",
+    "number_of_pairs",
+    "photo_z_dilution_factor",
+    "raw_excess_surface_density",
+    "raw_tangential_shear",
+    "scalar_shear_response_factor",
+    "shear_responsivity_factor",
+    "tangential_shear",
+]
 
 
 def number_of_pairs(table_l):
@@ -30,34 +40,39 @@ def number_of_pairs(table_l):
         The number of lens-source pairs in each radial bin.
 
     """
-    return np.sum(table_l['sum 1'].data, axis=0)
+    return np.sum(table_l["sum 1"].data, axis=0)
 
 
-def raw_tangential_shear(table_l):
+def raw_tangential_shear(table_l, shear_component):
     """Compute the average tangential shear for a catalog.
 
     Parameters
     ----------
     table_l : astropy.table.Table
         Precompute results for the lenses.
+     shear_component : str
+            't' for tangential and 'x' for cross
 
     Returns
     -------
-    gt : numpy.ndarray
-        The raw, uncorrected tangential shear in each radial bin.
+    gt,x : numpy.ndarray
+        The raw, uncorrected tangential or cross shear in each radial bin.
 
     """
-    return (np.dot(table_l['w_sys'].data, table_l['sum w_ls e_t'].data) /
-            np.dot(table_l['w_sys'].data, table_l['sum w_ls'].data))
+    return np.dot(
+        table_l["w_sys"].data, table_l[f"sum w_ls e_{shear_component}"].data
+    ) / np.dot(table_l["w_sys"].data, table_l["sum w_ls"].data)
 
 
-def raw_excess_surface_density(table_l):
+def raw_excess_surface_density(table_l, shear_component):
     """Compute the raw, uncorrected excess surface density for a catalog.
 
     Parameters
     ----------
     table_l : astropy.table.Table
         Precompute results for the lenses.
+    shear_component : str
+        't' for tangential and 'x' for cross
 
     Returns
     -------
@@ -65,9 +80,10 @@ def raw_excess_surface_density(table_l):
         The raw, uncorrected excess surface density in each radial bin.
 
     """
-    return (np.dot(table_l['w_sys'].data,
-                   table_l['sum w_ls e_t sigma_crit'].quantity) /
-            np.dot(table_l['w_sys'].data, table_l['sum w_ls'].data))
+    return np.dot(
+        table_l["w_sys"].data,
+        table_l[f"sum w_ls e_{shear_component} sigma_crit"].quantity,
+    ) / np.dot(table_l["w_sys"].data, table_l["sum w_ls"].data)
 
 
 def photo_z_dilution_factor(table_l):
@@ -84,10 +100,9 @@ def photo_z_dilution_factor(table_l):
         Photometric redshift bias :math:`f_{\mathrm{bias}}`.
 
     """
-    return (np.dot(table_l['w_sys'].data,
-                   table_l['sum w_ls e_t sigma_crit f_bias'].data) /
-            np.dot(table_l['w_sys'].data,
-                   table_l['sum w_ls e_t sigma_crit'].data))
+    return np.dot(
+        table_l["w_sys"].data, table_l["sum w_ls e_t sigma_crit f_bias"].data
+    ) / np.dot(table_l["w_sys"].data, table_l["sum w_ls e_t sigma_crit"].data)
 
 
 def boost_factor(table_l, table_r):
@@ -110,9 +125,11 @@ def boost_factor(table_l, table_r):
 
     """
     return (
-        np.dot(table_l['w_sys'].data, table_l['sum w_ls'].data) /
-        np.dot(table_r['w_sys'].data, table_r['sum w_ls'].data) *
-        np.sum(table_r['w_sys'].data) / np.sum(table_l['w_sys'].data))
+        np.dot(table_l["w_sys"].data, table_l["sum w_ls"].data)
+        / np.dot(table_r["w_sys"].data, table_r["sum w_ls"].data)
+        * np.sum(table_r["w_sys"].data)
+        / np.sum(table_l["w_sys"].data)
+    )
 
 
 def scalar_shear_response_factor(table_l, selection_bias=False):
@@ -135,10 +152,11 @@ def scalar_shear_response_factor(table_l, selection_bias=False):
         Multiplicative shear bias in each radial bin.
 
     """
-    m = 'm_sel' if selection_bias else 'm'
+    m = "m_sel" if selection_bias else "m"
 
-    return (np.dot(table_l['w_sys'].data, table_l[f'sum w_ls {m}'].data) /
-            np.dot(table_l['w_sys'].data, table_l['sum w_ls'].data))
+    return np.dot(table_l["w_sys"].data, table_l[f"sum w_ls {m}"].data) / np.dot(
+        table_l["w_sys"].data, table_l["sum w_ls"].data
+    )
 
 
 def matrix_shear_response_factor(table_l):
@@ -158,8 +176,9 @@ def matrix_shear_response_factor(table_l):
         Tangential shear response factor in each radial bin.
 
     """
-    return (np.dot(table_l['w_sys'].data, table_l['sum w_ls R_T'].data) /
-            np.dot(table_l['w_sys'].data, table_l['sum w_ls'].data))
+    return np.dot(table_l["w_sys"].data, table_l["sum w_ls R_T"].data) / np.dot(
+        table_l["w_sys"].data, table_l["sum w_ls"].data
+    )
 
 
 def shear_responsivity_factor(table_l):
@@ -176,9 +195,9 @@ def shear_responsivity_factor(table_l):
         Shear responsivity factor in each radial bin.
 
     """
-    return (
-        np.dot(table_l['w_sys'].data, table_l['sum w_ls (1 - e_rms^2)'].data) /
-        np.dot(table_l['w_sys'].data, table_l['sum w_ls'].data))
+    return np.dot(
+        table_l["w_sys"].data, table_l["sum w_ls (1 - e_rms^2)"].data
+    ) / np.dot(table_l["w_sys"].data, table_l["sum w_ls"].data)
 
 
 def mean_lens_redshift(table_l):
@@ -195,8 +214,9 @@ def mean_lens_redshift(table_l):
         Mean lens redshift in each bin.
 
     """
-    return (np.dot(table_l['w_sys'].data, table_l['sum w_ls z_l'].data) /
-            np.dot(table_l['w_sys'].data, table_l['sum w_ls'].data))
+    return np.dot(table_l["w_sys"].data, table_l["sum w_ls z_l"].data) / np.dot(
+        table_l["w_sys"].data, table_l["sum w_ls"].data
+    )
 
 
 def mean_source_redshift(table_l):
@@ -213,8 +233,9 @@ def mean_source_redshift(table_l):
         Mean source redshift in each bin.
 
     """
-    return (np.dot(table_l['w_sys'].data, table_l['sum w_ls z_s'].data) /
-            np.dot(table_l['w_sys'].data, table_l['sum w_ls'].data))
+    return np.dot(table_l["w_sys"].data, table_l["sum w_ls z_s"].data) / np.dot(
+        table_l["w_sys"].data, table_l["sum w_ls"].data
+    )
 
 
 def mean_critical_surface_density(table_l, photo_z_dilution_correction=False):
@@ -236,16 +257,22 @@ def mean_critical_surface_density(table_l, photo_z_dilution_correction=False):
 
     """
     if photo_z_dilution_correction:
-        key = 'sigma_crit f_bias'
+        key = "sigma_crit f_bias"
     else:
-        key = 'sigma_crit'
-    return (
-        np.dot(table_l['w_sys'].data, table_l[f'sum w_ls {key}'].quantity) /
-        np.dot(table_l['w_sys'].data, table_l['sum w_ls'].data))
+        key = "sigma_crit"
+    return np.dot(table_l["w_sys"].data, table_l[f"sum w_ls {key}"].quantity) / np.dot(
+        table_l["w_sys"].data, table_l["sum w_ls"].data
+    )
 
 
-def lens_magnification_bias(table_l, alpha_l, sigma_8=0.82, n_s=0.96,
-                            photo_z_dilution_correction=False, shear=False):
+def lens_magnification_bias(
+    table_l,
+    alpha_l,
+    sigma_8=0.82,
+    n_s=0.96,
+    photo_z_dilution_correction=False,
+    shear=False,
+):
     r"""Estimate the additive lens magnification bias.
 
     Note that the assumed cosmology is taken from ``table_l.meta['cosmology']``
@@ -278,9 +305,9 @@ def lens_magnification_bias(table_l, alpha_l, sigma_8=0.82, n_s=0.96,
         The lens magnification bias in each radial bin.
 
     """
-    cosmology = table_l.meta['cosmology']
-    bins = table_l.meta['bins']
-    comoving = table_l.meta['comoving']
+    cosmology = table_l.meta["cosmology"]
+    bins = table_l.meta["bins"]
+    comoving = table_l.meta["comoving"]
     # Average over bins assuming constant density per area.
     bins = 2.0 / 3.0 * np.diff(bins**3) / np.diff(bins**2)
 
@@ -290,26 +317,34 @@ def lens_magnification_bias(table_l, alpha_l, sigma_8=0.82, n_s=0.96,
     try:
         theta = bins.to(u.rad)
     except UnitConversionError:
-        theta = (bins / mpc_per_degree(
-            z_l, cosmology=cosmology, comoving=comoving)).to(
-                u.rad, cu.with_H0(cosmology.H0))
+        theta = (bins / mpc_per_degree(z_l, cosmology=cosmology, comoving=comoving)).to(
+            u.rad, cu.with_H0(cosmology.H0)
+        )
 
     gt = lens_magnification_shear_bias(
-        theta, alpha_l, z_l, z_s, cosmology, sigma_8=sigma_8, n_s=n_s)
+        theta, alpha_l, z_l, z_s, cosmology, sigma_8=sigma_8, n_s=n_s
+    )
 
     if shear:
         return gt
 
     return gt * mean_critical_surface_density(
-        table_l, photo_z_dilution_correction=photo_z_dilution_correction)
+        table_l, photo_z_dilution_correction=photo_z_dilution_correction
+    )
 
 
-def tangential_shear(table_l, table_r=None, boost_correction=False,
-                     scalar_shear_response_correction=False,
-                     matrix_shear_response_correction=False,
-                     shear_responsivity_correction=False,
-                     selection_bias_correction=False,
-                     random_subtraction=False, return_table=False):
+def tangential_shear(
+    table_l,
+    table_r=None,
+    boost_correction=False,
+    scalar_shear_response_correction=False,
+    matrix_shear_response_correction=False,
+    shear_responsivity_correction=False,
+    selection_bias_correction=False,
+    random_subtraction=False,
+    cross_component=False,
+    return_table=False,
+):
     """Compute the mean tangential shear with corrections, if applicable.
 
     Parameters
@@ -335,6 +370,8 @@ def tangential_shear(table_l, table_r=None, boost_correction=False,
     random_subtraction : bool, optional
         If ``True``, subtract the signal around randoms. This can only be done
         if a random catalog is provided. Default is ``False``.
+    cross_component : bool, optional
+        If true, compute quantities for cross component. Default is False.
     return_table : bool, optional
         If ``True``, return a table with many intermediate steps of the
         computation. Otherwise, a simple array with just the final tangential
@@ -357,68 +394,86 @@ def tangential_shear(table_l, table_r=None, boost_correction=False,
     """
     result = Table()
 
-    result['rp_min'] = table_l.meta['bins'][:-1]
-    result['rp_max'] = table_l.meta['bins'][1:]
-    result['n_pairs'] = number_of_pairs(table_l)
-    result['gt_raw'] = raw_tangential_shear(table_l)
-    result['gt'] = raw_tangential_shear(table_l)
-    result['z_l'] = mean_lens_redshift(table_l)
-    result['z_s'] = mean_source_redshift(table_l)
+    if cross_component:
+        shear_component = "x"
+    else:
+        shear_component = "t"
+
+    result["rp_min"] = table_l.meta["bins"][:-1]
+    result["rp_max"] = table_l.meta["bins"][1:]
+    result["n_pairs"] = number_of_pairs(table_l)
+    result[f"g{shear_component}_raw"] = raw_tangential_shear(table_l, shear_component)
+    result[f"g{shear_component}"] = raw_tangential_shear(table_l, shear_component)
+    result["z_l"] = mean_lens_redshift(table_l)
+    result["z_s"] = mean_source_redshift(table_l)
 
     if boost_correction:
         if table_r is None:
-            msg = ("Cannot compute boost factor correction without results "
-                   "from a random catalog.")
+            msg = (
+                "Cannot compute boost factor correction without results "
+                "from a random catalog."
+            )
             raise ValueError(msg)
-        result['b'] = boost_factor(table_l, table_r)
-        result['gt'] *= result['b']
+        result["b"] = boost_factor(table_l, table_r)
+        result[f"g{shear_component}"] *= result["b"]
 
     if scalar_shear_response_correction:
-        result['1+m'] = 1 + scalar_shear_response_factor(table_l)
-        result['gt'] /= result['1+m']
+        result["1+m"] = 1 + scalar_shear_response_factor(table_l)
+        result[f"g{shear_component}"] /= result["1+m"]
 
     if matrix_shear_response_correction:
-        result['R_t'] = matrix_shear_response_factor(table_l)
-        result['gt'] /= result['R_t']
+        result[f"R_{shear_component}"] = matrix_shear_response_factor(table_l)
+        result[f"g{shear_component}"] /= result[f"R_{shear_component}"]
 
     if shear_responsivity_correction:
-        result['2R'] = 2 * shear_responsivity_factor(table_l)
-        result['gt'] /= result['2R']
+        result["2R"] = 2 * shear_responsivity_factor(table_l)
+        result[f"g{shear_component}"] /= result["2R"]
 
     if selection_bias_correction:
-        result['1+m_sel'] = 1 + scalar_shear_response_factor(
-            table_l, selection_bias=True)
-        result['gt'] /= result['1+m_sel']
+        result["1+m_sel"] = 1 + scalar_shear_response_factor(
+            table_l, selection_bias=True
+        )
+        result[f"e{shear_component}"] /= result["1+m_sel"]
 
     if random_subtraction:
         if table_r is None:
-            msg = ("Cannot subtract random results without results from a "
-                   "random catalog.")
+            msg = (
+                "Cannot subtract random results without results from a "
+                "random catalog."
+            )
             raise ValueError(msg)
-        result['gt_r'] = tangential_shear(
-            table_r, boost_correction=False,
+        result[f"g{shear_component}_r"] = tangential_shear(
+            table_r,
+            boost_correction=False,
             scalar_shear_response_correction=scalar_shear_response_correction,
             matrix_shear_response_correction=matrix_shear_response_correction,
             shear_responsivity_correction=shear_responsivity_correction,
             selection_bias_correction=selection_bias_correction,
-            random_subtraction=False, return_table=False)
-        result['gt'] -= result['gt_r']
+            random_subtraction=False,
+            cross_component=cross_component,
+            return_table=False,
+        )
+        result[f"g{shear_component}"] -= result[f"g{shear_component}_r"]
 
     if not return_table:
-        return result['gt'].data
+        return result[f"g{shear_component}"].data
 
     return result
 
 
-def excess_surface_density(table_l, table_r=None,
-                           photo_z_dilution_correction=False,
-                           boost_correction=False,
-                           scalar_shear_response_correction=False,
-                           matrix_shear_response_correction=False,
-                           shear_responsivity_correction=False,
-                           selection_bias_correction=False,
-                           random_subtraction=False,
-                           return_table=False):
+def excess_surface_density(
+    table_l,
+    table_r=None,
+    photo_z_dilution_correction=False,
+    boost_correction=False,
+    scalar_shear_response_correction=False,
+    matrix_shear_response_correction=False,
+    shear_responsivity_correction=False,
+    selection_bias_correction=False,
+    random_subtraction=False,
+    cross_component=False,
+    return_table=False,
+):
     """Compute the mean excess surface density with corrections, if applicable.
 
     Parameters
@@ -448,6 +503,8 @@ def excess_surface_density(table_l, table_r=None,
     random_subtraction : bool, optional
         If ``True``, subtract the signal around randoms. This can only be done
         if a random catalog is provided. Default is ``False``.
+    cross component : bool, optional
+        If True, compute for cross component. Default is False
     return_table : bool, optional
         If ``True``, return a table with many intermediate steps of the
         computation. Otherwise, a simple array with just the final excess
@@ -470,59 +527,78 @@ def excess_surface_density(table_l, table_r=None,
     """
     result = Table()
 
-    result['rp_min'] = table_l.meta['bins'][:-1]
-    result['rp_max'] = table_l.meta['bins'][1:]
-    result['n_pairs'] = number_of_pairs(table_l)
-    result['ds_raw'] = raw_excess_surface_density(table_l)
-    result['ds'] = raw_excess_surface_density(table_l)
-    result['z_l'] = mean_lens_redshift(table_l)
-    result['z_s'] = mean_source_redshift(table_l)
+    result = Table()
+    if cross_component:
+        shear_component = "x"
+    else:
+        shear_component = "t"
+
+    result["rp_min"] = table_l.meta["bins"][:-1]
+    result["rp_max"] = table_l.meta["bins"][1:]
+    result["n_pairs"] = number_of_pairs(table_l)
+    result[f"ds_{shear_component}_raw"] = raw_excess_surface_density(
+        table_l, shear_component
+    )
+    result[f"ds_{shear_component}"] = raw_excess_surface_density(
+        table_l, shear_component
+    )
+    result["z_l"] = mean_lens_redshift(table_l)
+    result["z_s"] = mean_source_redshift(table_l)
 
     if boost_correction:
         if table_r is None:
-            msg = ("Cannot compute boost factor correction without results "
-                   "from a random catalog.")
+            msg = (
+                "Cannot compute boost factor correction without results "
+                "from a random catalog."
+            )
             raise ValueError(msg)
-        result['b'] = boost_factor(table_l, table_r)
-        result['ds'] *= result['b']
+        result["b"] = boost_factor(table_l, table_r)
+        result[f"ds_{shear_component}"] *= result["b"]
 
     if scalar_shear_response_correction:
-        result['1+m'] = 1 + scalar_shear_response_factor(table_l)
-        result['ds'] /= result['1+m']
+        result["1+m"] = 1 + scalar_shear_response_factor(table_l)
+        result[f"ds_{shear_component}"] /= result["1+m"]
 
     if matrix_shear_response_correction:
-        result['R_t'] = matrix_shear_response_factor(table_l)
-        result['ds'] /= result['R_t']
+        result["R_t"] = matrix_shear_response_factor(table_l)
+        result[f"ds_{shear_component}"] /= result[f"R_{shear_component}"]
 
     if shear_responsivity_correction:
-        result['2R'] = 2 * shear_responsivity_factor(table_l)
-        result['ds'] /= result['2R']
+        result["2R"] = 2 * shear_responsivity_factor(table_l)
+        result[f"ds_{shear_component}"] /= result["2R"]
 
     if selection_bias_correction:
-        result['1+m_sel'] = 1 + scalar_shear_response_factor(
-            table_l, selection_bias=True)
-        result['ds'] /= result['1+m_sel']
+        result["1+m_sel"] = 1 + scalar_shear_response_factor(
+            table_l, selection_bias=True
+        )
+        result[f"ds_{shear_component}"] /= result["1+m_sel"]
 
     if photo_z_dilution_correction:
-        result['f_bias'] = photo_z_dilution_factor(table_l)
-        result['ds'] *= result['f_bias']
+        result["f_bias"] = photo_z_dilution_factor(table_l)
+        result[f"ds_{shear_component}"] *= result["f_bias"]
 
     if random_subtraction:
         if table_r is None:
-            msg = ("Cannot subtract random results without results from a "
-                   "random catalog.")
+            msg = (
+                "Cannot subtract random results without results from a "
+                "random catalog."
+            )
             raise ValueError(msg)
-        result['ds_r'] = excess_surface_density(
-            table_r, photo_z_dilution_correction=photo_z_dilution_correction,
+        result["ds_r"] = excess_surface_density(
+            table_r,
+            photo_z_dilution_correction=photo_z_dilution_correction,
             boost_correction=False,
             scalar_shear_response_correction=scalar_shear_response_correction,
             matrix_shear_response_correction=matrix_shear_response_correction,
             shear_responsivity_correction=shear_responsivity_correction,
             selection_bias_correction=selection_bias_correction,
-            random_subtraction=False, return_table=False)
-        result['ds'] -= result['ds_r']
+            random_subtraction=False,
+            cross_component=cross_component,
+            return_table=False,
+        )
+        result[f"ds_{shear_component}"] -= result["ds_r"]
 
     if not return_table:
-        return result['ds'].quantity
+        return result[f"ds_{shear_component}"].quantity
 
     return result
