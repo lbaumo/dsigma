@@ -479,7 +479,7 @@ def tangential_shear(
         result["1+m_sel"] = 1 + scalar_shear_response_factor(
             table_l, selection_bias=True
         )
-        result[f"e{shear_component}"] /= result["1+m_sel"]
+        result[f"g{shear_component}"] /= result["1+m_sel"]
 
     if random_subtraction:
         if table_r is None:
