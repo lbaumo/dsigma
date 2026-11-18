@@ -93,7 +93,6 @@ def raw_tangential_shear(table_l, shear_component):
             np.dot(table_l['w_sys'].data, table_l['sum w_ls'].data))
 
 
-
 def raw_excess_surface_density(table_l, shear_component):
     """Compute the raw, uncorrected excess surface density for a catalog.
 

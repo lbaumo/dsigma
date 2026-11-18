@@ -307,14 +307,7 @@ def precompute_engine(
                     e_t = - e_1[i_s] * cos_2phi + e_2[i_s] * sin_2phi
                     if include_cross:
                         e_x = - e_1[i_s] * sin_2phi - e_2[i_s] * cos_2phi
-                        sum_1[offset_result + i_bin] += 1
-                        summand = w_ls
-                        sum_w_ls[offset_result + i_bin] += summand
-                        summand *= e_x
-                        sum_w_ls_e_x[offset_result + i_bin] += summand
-                        summand *= sigma_crit
-                        sum_w_ls_e_x_sigma_crit[offset_result + i_bin] += summand
-
+                        
                     sum_1[offset_result + i_bin] += 1
                     summand = w_ls
                     sum_w_ls[offset_result + i_bin] += summand
@@ -322,8 +315,15 @@ def precompute_engine(
                     sum_w_ls_e_t[offset_result + i_bin] += summand
                     summand *= sigma_crit
                     sum_w_ls_e_t_sigma_crit[offset_result + i_bin] += summand
-                    sum_w_ls_z_s[offset_result + i_bin] += w_ls * z_s[i_s]
-                    sum_w_ls_sigma_crit[offset_result + i_bin] += w_ls * sigma_crit
+		    if include_cross:
+		       sum_w_ls_e_x[offset_result + i_bin] += w_ls * e_x
+    		       sum_w_ls_e_x_sigma_crit[offset_result + i_bin] += w_ls * e_x * sigma_crit
+		       
+		    sum_w_ls_z_s[offset_result + i_bin] += w_ls * z_s[i_s]
+                    sum_w_ls_sigma_crit[offset_result + i_bin] += w_ls * sigma_\
+crit
+
+    
                     if has_m:
                         sum_w_ls_m[offset_result + i_bin] += w_ls * m[i_s]
                     if has_e_rms:
