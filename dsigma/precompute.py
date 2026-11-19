@@ -360,7 +360,7 @@ def precompute(
         table_engine_l['sigma_crit_eff'] = np.ascontiguousarray(
             sigma_crit_eff, dtype=np.float64)
         table_engine_l['f_c_eff'] = np.ascontiguousarray(
-            f_c_eff, dtype=np.float64)
+            f_c_eff_arr, dtype=np.float64)
 
     # Create arrays that will hold the final results.
     table_engine_r = {}
