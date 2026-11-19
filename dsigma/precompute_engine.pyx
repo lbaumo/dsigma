@@ -1,9 +1,11 @@
 # cython: language_level=3, boundscheck=False, wraparound=False
 # cython: nonecheck=False, cdivision=True, initializedcheck=False
+
 """Main computational loop for dsigma."""
 
 import queue as Queue
-from libc.math cimport sin, cos, sqrt, fmax, pow
+
+from libc.math cimport cos, fmax, pow, sin, sqrt
 
 import numpy as np
 from astropy import constants as c
@@ -91,6 +93,8 @@ def precompute_engine(
     cdef double[::1] z_l_max = table_s['z_l_max']
 
     cdef bint has_sigma_crit_eff = 'sigma_crit_eff' in table_l
+    cdef bint include_cross = 'sum w_ls e_x' in table_r
+
     cdef int n_z_bins = 0
     cdef double[::1] sigma_crit_eff
     cdef long[::1] z_bin
@@ -131,6 +135,15 @@ def precompute_engine(
     cdef double[::1] sum_w_ls_sigma_crit = table_r['sum w_ls sigma_crit']
     cdef double[::1] sum_w_ls_z_s = table_r['sum w_ls z_s']
     cdef double[::1] sum_w_ls_m
+
+    cdef double[::1] sum_w_ls_e_x
+    cdef double[::1] sum_w_ls_e_x_sigma_crit
+
+    if include_cross:
+        sum_w_ls_e_x = table_r['sum w_ls e_x']
+        sum_w_ls_e_x_sigma_crit = table_r['sum w_ls e_x sigma_crit']
+
+
     if has_m:
         sum_w_ls_m = table_r['sum w_ls m']
     cdef double[::1] sum_w_ls_1_minus_e_rms_sq
@@ -165,7 +178,7 @@ def precompute_engine(
     cdef long offset_bin, offset_result
     cdef double chord_sq_pix_max, chord_sq_pix_min, chord_sq_ls
     cdef double sin_ra_l_minus_ra_s, cos_ra_l_minus_ra_s
-    cdef double sin_2phi, cos_2phi, tan_phi, tan_phi_num, tan_phi_den, e_t
+    cdef double sin_2phi, cos_2phi, tan_phi, tan_phi_num, tan_phi_den, e_t, e_x
     cdef double w_ls, sigma_crit
     cdef double inf = float('inf'), summand
 
@@ -292,7 +305,9 @@ def precompute_engine(
                         sin_2phi = 2.0 * tan_phi / (1.0 + tan_phi * tan_phi)
 
                     e_t = - e_1[i_s] * cos_2phi + e_2[i_s] * sin_2phi
-
+                    if include_cross:
+                        e_x = - e_1[i_s] * sin_2phi - e_2[i_s] * cos_2phi
+                        
                     sum_1[offset_result + i_bin] += 1
                     summand = w_ls
                     sum_w_ls[offset_result + i_bin] += summand
@@ -300,8 +315,15 @@ def precompute_engine(
                     sum_w_ls_e_t[offset_result + i_bin] += summand
                     summand *= sigma_crit
                     sum_w_ls_e_t_sigma_crit[offset_result + i_bin] += summand
-                    sum_w_ls_z_s[offset_result + i_bin] += w_ls * z_s[i_s]
-                    sum_w_ls_sigma_crit[offset_result + i_bin] += w_ls * sigma_crit
+		    if include_cross:
+		       sum_w_ls_e_x[offset_result + i_bin] += w_ls * e_x
+    		       sum_w_ls_e_x_sigma_crit[offset_result + i_bin] += w_ls * e_x * sigma_crit
+		       
+		    sum_w_ls_z_s[offset_result + i_bin] += w_ls * z_s[i_s]
+                    sum_w_ls_sigma_crit[offset_result + i_bin] += w_ls * sigma_\
+crit
+
+    
                     if has_m:
                         sum_w_ls_m[offset_result + i_bin] += w_ls * m[i_s]
                     if has_e_rms:
