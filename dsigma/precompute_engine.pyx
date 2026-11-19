@@ -104,6 +104,7 @@ def precompute_engine(
         z_bin = table_s['z_bin']
         if has_f_c_eff:
             f_c_eff = table_l['f_c_eff']
+            sum_w_ls_fc = table_r['sum w_ls f_c']
 
     cdef bint has_m = 'm' in table_s
     cdef double[::1] m
