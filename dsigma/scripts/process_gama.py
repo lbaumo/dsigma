@@ -2,10 +2,10 @@
 
 import numpy as np
 from astropy.table import Table, vstack
+import argparse
 
-
-def process_hsc_y3(datadir):
-    """Process raw HSC Y3 data.
+def process_hsc_y3_for_gama():
+    """Process raw HSC Y3 data for gama groups.
 
     The script assumes the following files to be present in the working
     directory.
@@ -13,10 +13,17 @@ def process_hsc_y3(datadir):
     * ``hsc_y3.fits``
     * ``nz.fits``
 
-    It will produce the file ``datadir/hsc_y3_sources.hdf5`` containing the processed source
-    catalog and calibration :math:`n(z)`.
+    It will produce the file ``datadir/hsc_y3_sources.hdf5`` containing the processed source catalog and calibration :math:`n(z)`.
 
     """
+    parser = argparse.ArgumentParser(
+    description='HSC sources for computing lensing signal around gama groups.')
+
+    parser.add_argument('datadir', help='path to data directory')
+    
+    args = parser.parse_args()
+
+    datadir = args.datadir
     print("Reading in catalog data...")
 
     table_s = Table.read(f'{datadir}/hsc_y3.fits')
@@ -59,11 +66,11 @@ def process_hsc_y3(datadir):
     table_n.rename_column('Z_MID', 'z')
     table_n['n'] = np.column_stack([table_n[f'BIN{i + 1}'] for i in range(4)])
     table_n.keep_columns(['z', 'n'])
-    table_n.write('hsc_y3.hdf5', path=f'{datadir}/calibration', overwrite=True,
+    table_n.write('hsc_y3_sources.hdf5', path=f'{datadir}/calibration', overwrite=True,
                   append=True)
 
     print("Done!")
 
 
 if __name__ == "__main__":
-    process_hsc_y3(datadir)
+    process_hsc_y3()
