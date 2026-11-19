@@ -368,7 +368,10 @@ def precompute(
 
     key_list = ['sum 1', 'sum w_ls', 'sum w_ls e_t', 'sum w_ls z_s',
                 'sum w_ls e_t sigma_crit', 'sum w_ls sigma_crit']
-
+    # check if we are computing f_c
+    if 'f_c_eff' in table_engine_l:
+        key_list.append('sum w_ls f_c')
+        
     for table_s_key, table_r_key in zip(
         ['m', 'e_rms', 'm_sel', 'R_11'],
         ['sum w_ls m', 'sum w_ls (1 - e_rms^2)', 'sum w_ls m_sel',
