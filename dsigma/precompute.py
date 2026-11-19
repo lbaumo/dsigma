@@ -338,13 +338,13 @@ def precompute(
 
         sigma_crit_eff_inv = np.zeros(len(table_l) * n_bins, dtype=np.float64)
 
-        f_c_eff = np.zeros(len(table_l) * n_bins, dtype=np.float64)
+        f_c_eff_arr = np.zeros(len(table_l) * n_bins, dtype=np.float64)
 
         for z_bin in range(n_bins):
             sigma_crit_eff_inv[z_bin::n_bins] = interpolate_over_redshift(
                 _inverse_effective_critical_surface_density,
                 table_engine_l['z'], z_bin).value
-            f_c_eff[z_bin::n_bins] = interpolate_over_redshift(
+            f_c_eff_arr[z_bin::n_bins] = interpolate_over_redshift(
                 _f_c_eff,
                 table_engine_l['z'], z_bin).value
 
@@ -353,8 +353,8 @@ def precompute(
                 sigma_crit_eff_inv > 0, 1.0 / sigma_crit_eff_inv,
                 np.finfo(np.float64).max)
             
-            f_c_eff = np.where(
-                            sigma_crit_eff_inv > 0, f_c_eff,
+            f_c_eff_arr = np.where(
+                            sigma_crit_eff_inv > 0, f_c_eff_arr,
                             np.finfo(np.float64).max)
 
         table_engine_l['sigma_crit_eff'] = np.ascontiguousarray(
