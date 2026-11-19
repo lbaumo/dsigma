@@ -58,7 +58,7 @@ def create_random(
     for i_bin in range(len(mass_bins) - 1):
         bin_mask = groups["mass_bin"] == i_bin
         transformed_source = quantile_normalize(
-            galaxy_random["Z"], groups["Z"][bin_mask]
+            galaxy_random["Z"], groups['IterCenZ'][bin_mask]
         )
         n_points = n_real * len(groups[bin_mask])
         rng = np.random.default_rng()
