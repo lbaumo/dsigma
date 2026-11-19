@@ -92,9 +92,11 @@ def precompute_engine(
 
     cdef bint has_sigma_crit_eff = 'sigma_crit_eff' in table_l
     cdef bint has_f_c_eff = 'f_c_eff' in table_l
+    cdef double f_c
     cdef int n_z_bins = 0
     cdef double[::1] sigma_crit_eff
     cdef double[::1] f_c_eff
+    cdef double[::1] sum_w_ls_fc
     cdef long[::1] z_bin
     if has_sigma_crit_eff:
         n_z_bins = len(table_l['sigma_crit_eff']) // len(table_l['z'])
