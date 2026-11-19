@@ -5,7 +5,7 @@ import numpy as np
 from astropy import units as u
 from astropy.cosmology import units as cu
 from astropy.cosmology import Planck15
-from astropy.table import Table, vstack
+from astropy.table import Table
 
 from dsigma.precompute import precompute
 from dsigma.jackknife import compress_jackknife_fields
@@ -75,6 +75,7 @@ compute_jackknife_fields(table_r, centers)
 
 # Stack the signal.
 stacking_kwargs['random_subtraction'] = True
+stacking_kwargs["return_table"] = False
 
 for lens_bin in range(len(m_bins) - 1):
 
@@ -93,7 +94,7 @@ for lens_bin in range(len(m_bins) - 1):
     # perform the stacking
     result = excess_surface_density(
         table_l_bin, table_r=table_r_bin, return_table=True, **stacking_kwargs)
-    stacking_kwargs["return_table"] = False
+    
     result['ds_t_err'] = np.sqrt(np.diag(jackknife_resampling(
         excess_surface_density, table_l_bin, table_r=table_r_bin,
         **stacking_kwargs)))
@@ -101,12 +102,12 @@ for lens_bin in range(len(m_bins) - 1):
     # stack cross component
     stacking_kwargs_cross = stacking_kwargs.copy()
     stacking_kwargs_cross['cross_component'] = True
-    stacking_kwargs_cross['return_table'] = False  # As fixed previously        
+    
 
     result['ds_x'] = excess_surface_density(table_l[mask_l], **stacking_kwargs_\
 cross)
     result['ds_x_err'] = np.sqrt(np.diag(jackknife_resampling(
-    excess_surface_density, table_l[mask_l], **stacking_kwargs_cross)))
+        excess_surface_density, table_l_bin,table_r=table_r_bin, **stacking_kwargs_cross)))
 
     result.write(f"boost_one_bin_{args.survey.lower()}_{lens_bin}.csv", overwri\
 te=True)
