@@ -1,7 +1,8 @@
-"""Script to process HSC Y3 data."""
+"""Script to process HSC Y3 data for gama groups."""
 
 import numpy as np
-from astropy.table import Table, vstack
+from astropy.table import Table
+
 import argparse
 
 def process_hsc_y3_for_gama(datadir):
@@ -73,5 +74,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    datadir = args.datadir
     process_hsc_y3_for_gama(args.datadir)
