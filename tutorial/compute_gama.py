@@ -25,24 +25,24 @@ m_bins = np.array([0.15, 0.31, 0.43, 0.54, 0.70])
 #prepare lens table
 table_l = Table.read('/sps/lsst/users/lbaumont/data/HSC/cluster_coverfraction.fits')
 # trim to keep lenses that are at least half covered to 1 mpc
-table_l[table_l["cf_1mpc"] > 0.5]
+table_l=table_l[table_l["cf_1mpc"] > 0.5]
 # rename to dsigma columns
 lens_keys = dict(z="IterCenZ", ra="BCGRA", dec="BCGDec", mhalo="ma\
 ss_lum")
 for new_key, old_key in lens_keys.items():
     table_l.rename_column(old_key, new_key)
-    table_l.keep_columns(lens_keys.keys())
+table_l.keep_columns(lens_keys.keys())
 table_l["w_sys"] = 1
 
 #prepare random table
 table_r = Table.read('/sps/lsst/users/lbaumont/data/HSC/random_mass_bin_13_14.f\
 its')
-random_keys = dict(z="Z_trans", ra="RA", dec="DEC")
+random_keys = dict(z="Z_trans", ra="RA", dec="DEC", mbin="mass_bin")
 
 for new_key, old_key in random_keys.items():
     table_r.rename_column(old_key, new_key)
-    table_r.keep_columns(random_keys.keys())
-    table_r['w_sys'] = 1
+table_r.keep_columns(random_keys.keys())
+table_r['w_sys'] = 1
 
 # source table and calibration tables
 table_s = Table.read('hsc_y3.hdf5', path='catalog')
@@ -78,6 +78,7 @@ stacking_kwargs['random_subtraction'] = True
 
 for lens_bin in range(len(m_bins) - 1):
 
+    mask_r=(table_r["mass_bin"] == lens_bin)
     mask_l = (m_bins[lens_bin] <= table_l["mhalo"]) & (
         table_l["mhalo"] < m_bins[lens_bin + 1]
     )
