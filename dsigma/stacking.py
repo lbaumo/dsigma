@@ -10,7 +10,7 @@ from astropy.units import UnitConversionError
 
 from .physics import lens_magnification_shear_bias, mpc_per_degree
 
-__all__ = ['boost_factor', 'excess_surface_density', 'lens_magnification_bias',
+__all__ = ['boost_factor', 'excess_surface_density', 'f_c_factor', 'lens_magnification_bias',
            'matrix_shear_response_factor', 'mean_critical_surface_density',
            'mean_lens_redshift', 'mean_source_redshift', 'number_of_pairs',
            'photo_z_dilution_factor', 'raw_excess_surface_density',
@@ -340,6 +340,24 @@ def lens_magnification_bias(table_l, alpha_l,
     return gt * mean_critical_surface_density(
         table_l, photo_z_dilution_correction=photo_z_dilution_correction)
 
+def f_c_factor(table_l):
+    """Compute the stacked f_c correction factor (eq. 12b of Mahony+2024).
+
+    Parameters
+    ----------
+    table_l : astropy.table.Table
+        Precompute results for the lenses.
+
+    Returns
+    -------
+    f_c : numpy.ndarray
+        The f_c factor in each radial bin.
+
+    """
+    check_required_columns(table_l, ['w_sys', 'sum w_ls f_c', 'sum w_ls'])
+    return (np.dot(table_l['w_sys'].data, table_l['sum w_ls f_c'].data) /
+            np.dot(table_l['w_sys'].data, table_l['sum w_ls'].data))
+
 
 def tangential_shear(table_l, table_r=None, boost_correction=False,
                      scalar_shear_response_correction=False,
@@ -459,6 +477,7 @@ def excess_surface_density(table_l, table_r=None,
                            shear_responsivity_correction=False,
                            selection_bias_correction=False,
                            random_subtraction=False,
+                           fc_factor=False,
                            return_table=False):
     """Compute the mean excess surface density with corrections, if applicable.
 
@@ -489,6 +508,9 @@ def excess_surface_density(table_l, table_r=None,
     random_subtraction : bool, optional
         If ``True``, subtract the signal around randoms. This can only be done
         if a random catalog is provided. Default is ``False``.
+    fc_factor : bool, optional
+        If ''True``, return a column with the stacked f_c factor. Default is
+        ``False``
     return_table : bool, optional
         If ``True``, return a table with many intermediate steps of the
         computation. Otherwise, a simple array with just the final excess
@@ -552,6 +574,9 @@ def excess_surface_density(table_l, table_r=None,
         result['f_bias'] = photo_z_dilution_factor(table_l)
         result['ds'] *= result['f_bias']
 
+    if fc_factor:
+        result['fc_factor'] = fc_factor(table_l)
+        
     if random_subtraction:
         if table_r is None:
             msg = ("Cannot subtract random results without results from a "
