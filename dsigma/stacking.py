@@ -575,7 +575,7 @@ def excess_surface_density(table_l, table_r=None,
         result['ds'] *= result['f_bias']
 
     if fc_factor:
-        result['fc_factor'] = f_c_factor(table_l)
+        result['fc'] = f_c_factor(table_l)
         
     if random_subtraction:
         if table_r is None:
