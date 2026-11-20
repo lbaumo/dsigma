@@ -181,7 +181,7 @@ def f_c_eff(
     sigma_crit_eff_inv = 1.0 / critical_surface_density(
         z_l=z_l, d_l=d_l, z_s=z_s, d_s=d_s, comoving=comoving)
     sigma_crit_eff_inv_mean = np.average(sigma_crit_eff_inv, weights=n_s, axis=-1)
-    sigma_crit_eff_inv_sq_man = np.average(sigma_crit_eff_inv**2, weights=n_s, axis=-1)
+    sigma_crit_eff_inv_sq_mean = np.average(sigma_crit_eff_inv**2, weights=n_s, axis=-1)
 
     
     with np.errstate(divide='ignore'):

@@ -12,7 +12,11 @@ from astropy_healpix import HEALPix
 
 from . import default_cosmology
 from .helpers import in_degrees, interpolate_over_redshift
-from .physics import critical_surface_density, effective_critical_surface_density, f_c_eff
+from .physics import (
+    critical_surface_density,
+    effective_critical_surface_density,
+    f_c_eff,
+)
 from .precompute_engine import precompute_engine
 
 __all__ = ['mean_photo_z_offset', 'photo_z_dilution_factor', 'precompute']
